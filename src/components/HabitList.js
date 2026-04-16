@@ -16,7 +16,7 @@ function HabitList() {
     }
 
     try {
-      const res = await axios.get("http://localhost:5000/api/habits", {
+      const res = await axios.get("https://habittracker-2-zhcw.onrender.com/api/habits", {
         headers: { 
           // Prefixed with 'Bearer ' which is standard for JWT
           Authorization: `Bearer ${token}` 
@@ -36,7 +36,7 @@ function HabitList() {
 
     if (window.confirm("Are you sure you want to delete this habit?")) {
       try {
-        await axios.delete(`http://localhost:5000/api/habits/${id}`, {
+        await axios.delete(`https://habittracker-2-zhcw.onrender.com/api/habits/${id}`, {
           headers: { Authorization: `Bearer ${token}` },
         });
         

@@ -32,7 +32,7 @@ function AddHabit() {
         }
       );
 
-      alert("Habit added successfully! 🎉");
+      alert("Habit added successfully! ");
       
       // Clear inputs
       setHabitName("");
