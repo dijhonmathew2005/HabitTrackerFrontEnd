@@ -3,21 +3,31 @@ import axios from "axios";
 
 function HabitList() {
   const [habits, setHabits] = useState([]);
+  const [loading, setLoading] = useState(true); // Added loading state
 
   const fetchHabits = async () => {
     const token = localStorage.getItem("token");
 
+    // Standard practice: check if token exists before trying the request
+    if (!token) {
+      console.error("No token found. Please log in.");
+      setLoading(false);
+      return;
+    }
+
     try {
-      const res = await axios.get(
-        "http://localhost:5000/api/habits",
-        {
-          headers: { Authorization: token },
-        }
-      );
+      const res = await axios.get("http://localhost:5000/api/habits", {
+        headers: { 
+          // Prefixed with 'Bearer ' which is standard for JWT
+          Authorization: `Bearer ${token}` 
+        },
+      });
 
       setHabits(res.data);
     } catch (err) {
       console.error("Error fetching habits:", err);
+    } finally {
+      setLoading(false);
     }
   };
 
@@ -26,15 +36,16 @@ function HabitList() {
 
     if (window.confirm("Are you sure you want to delete this habit?")) {
       try {
-        await axios.delete(
-          `http://localhost:5000/api/habits/${id}`,
-          {
-            headers: { Authorization: token },
-          }
-        );
-        fetchHabits(); 
+        await axios.delete(`http://localhost:5000/api/habits/${id}`, {
+          headers: { Authorization: `Bearer ${token}` },
+        });
+        
+        // Optimistic UI update: remove from local state immediately 
+        // so the user doesn't wait for the secondary fetch
+        setHabits(habits.filter((h) => h.habit_id !== id));
       } catch (err) {
         console.error("Error deleting habit:", err);
+        alert("Failed to delete habit. Please try again.");
       }
     }
   };
@@ -42,6 +53,10 @@ function HabitList() {
   useEffect(() => {
     fetchHabits();
   }, []);
+
+  if (loading) {
+    return <div className="container"><p>Loading your habits...</p></div>;
+  }
 
   return (
     <div className="container">
@@ -52,11 +67,16 @@ function HabitList() {
       ) : (
         habits.map((h) => (
           <div key={h.habit_id} className="habit-card">
-            <div>
+            <div className="habit-info">
               <h3>{h.habit_name}</h3>
-              <p>{h.description}</p>
+              {/* Added a fallback for empty descriptions */}
+              <p>{h.description || "No description provided."}</p>
             </div>
-            <button className="delete-btn" onClick={() => deleteHabit(h.habit_id)}>
+            <button 
+              className="delete-btn" 
+              onClick={() => deleteHabit(h.habit_id)}
+              aria-label={`Delete ${h.habit_name}`}
+            >
               Delete
             </button>
           </div>

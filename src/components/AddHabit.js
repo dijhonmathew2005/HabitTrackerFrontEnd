@@ -8,29 +8,41 @@ function AddHabit() {
   const handleSubmit = async () => {
     const token = localStorage.getItem("token");
 
-    
+    // 1. Basic validation
     if (!habit_name || !description) {
       alert("Please fill in both fields");
       return;
     }
 
+    // 2. Check if token exists before even trying
+    if (!token) {
+      alert("You are not logged in. Please log in first.");
+      return;
+    }
+
     try {
       await axios.post(
-        "http://localhost:5000/api/habits",
+        "/api/habits", // 3. Simplified URL thanks to your package.json proxy
         { habit_name, description },
         {
-          headers: { Authorization: token },
+          headers: { 
+            // 4. ADDED 'Bearer ' prefix here
+            Authorization: `Bearer ${token}` 
+          },
         }
       );
 
-      alert("Habit added successfully! ");
+      alert("Habit added successfully! 🎉");
       
-      
+      // Clear inputs
       setHabitName("");
       setDescription("");
     } catch (err) {
-      console.error(err);
-      alert("Failed to add habit. Make sure you are logged in.");
+      console.error("Add Habit Error:", err.response?.data || err.message);
+      
+      // Improved error message
+      const errorMsg = err.response?.data?.message || "Make sure you are logged in.";
+      alert(`Failed to add habit: ${errorMsg}`);
     }
   };
 
